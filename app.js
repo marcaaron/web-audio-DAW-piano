@@ -1,22 +1,33 @@
 let octave = 5;
+let instr=null;
 var AudioContextFunc = window.AudioContext || window.webkitAudioContext;
 var audioContext = new AudioContextFunc();
 var player = new WebAudioFontPlayer();
-player.loader.decodeAfterLoading(audioContext, '_tone_0121_FluidR3_GM_sf2_file');
+player.loader.decodeAfterLoading(audioContext, '_tone_0130_JCLive_sf2_file');
+var reverberator = player.createReverberator(audioContext);
+var channelMaster = player.createChannel(audioContext);
+channelMaster.output.connect(reverberator.input);
+reverberator.output.connect(audioContext.destination);
 
 function play(note){
-		console.log(octave.toString()+note.toString());
 	const keyboardKey = document.querySelector(`._${octave.toString()+note.toString()}`);
 	keyboardKey.classList.add('light');
-	player.queueWaveTable(audioContext, audioContext.destination
-		, _tone_0121_FluidR3_GM_sf2_file, 0, 12*octave+note, 10);
+	player.queueWaveTable(audioContext, channelMaster.input
+		, instr, 0, 12*octave+note, 10);
 	return false;
+}
+
+function changeInstrument(path,name){
+	player.loader.startLoad(audioContext, path, name);
+	player.loader.waitLoad(function () {
+		instr=window[name];
+	});
 }
 
 const keysDown = [];
 
 const keys = [['a'],['w'],['s'],['e'],['d'],['f'],['t'],['g'],['y'],['h'],['u'],['j'],['k'],['o'],['l']];
-
+console.log(player);
 function cancelKey(index,note){
 	const keyboardKey = document.querySelector(`._${octave.toString()+note.toString()}`);
 	keyboardKey.classList.remove('light');
